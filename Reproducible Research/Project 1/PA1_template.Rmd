@@ -1,0 +1,119 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
+
+
+
+## Loading and preprocessing the data
+
+```{r}
+df <- read.csv("activity.csv")
+head(df)
+```
+
+
+## What is mean total number of steps taken per day?
+
+```{r}
+df_complete <- df[complete.cases(df),]
+total_steps <- aggregate(x= df_complete$steps, 
+                         by=list(df_complete$date), FUN="sum", na.rm=TRUE)
+total_steps
+```
+```{r}
+hist(total_steps$x,
+     xlab = "Number of Steps",
+     main = "Total Steps by Day")
+```
+```{r}
+## Calculate mean and median
+print ("Mean")
+print(mean(total_steps$x))
+print ("Median")
+print(median(total_steps$x))
+```
+
+
+## What is the average daily activity pattern?
+
+```{r}
+splitbyInterval <- aggregate(x = df_complete$steps,
+                             by = list(df_complete$interval),
+                             FUN = "mean")
+plot(splitbyInterval$Group.1,
+     splitbyInterval$x,
+     type = "l",
+     xlab = "Interval",
+     ylab = "Average number of steps")
+
+```
+```{r}
+## The maximum number of steps
+splitbyInterval[which.max(splitbyInterval$x),]
+```
+
+## Imputing missing values
+### Number of records with missing values
+
+```{r}
+
+sum(!complete.cases(df))
+```
+
+### Fill missing data
+
+```{r}
+library(plyr)
+impute.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE))
+new_df <- ddply(df, ~ interval, transform, steps= impute.mean(steps))
+new_df <- new_df[order(new_df$date),]
+head(new_df)
+```
+
+
+```{r}
+total_steps <- aggregate(x= new_df$steps, 
+                         by=list(new_df$date), FUN="sum", na.rm=TRUE)
+total_steps
+```
+
+```{r}
+hist(total_steps$x,
+     xlab = "Number of Steps",
+     main = "Total Steps by Day")
+```
+```{r}
+print ("Mean")
+print(mean(total_steps$x))
+print ("Median")
+print(median(total_steps$x))
+```
+
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+new_df$weekday <- weekdays(as.POSIXct(new_df$date)) %in% c("Satureday","Sunday")
+new_df$weekday[new_df$weekday==FALSE] <- "weekday"
+new_df$weekday[new_df$weekday==TRUE] <- "weekend"
+new_df$weekday <- as.factor(new_df$weekday)
+```
+
+
+```{r}
+library(ggplot2)
+splitbyInterval <- aggregate(x = new_df$steps,
+                             by = list(new_df$interval,new_df$weekday),
+                             FUN = "mean")
+p <- ggplot(splitbyInterval,
+            aes(x = splitbyInterval$Group.1, y=splitbyInterval$x))+
+     geom_line()+
+     labs(x = "Interval", y="Average number of steps")+
+     facet_grid(splitbyInterval$Group.2 ~ .)
+
+p
+```
+
