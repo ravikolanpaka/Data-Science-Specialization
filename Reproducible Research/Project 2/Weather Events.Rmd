@@ -1,0 +1,90 @@
+---
+title: "The Effect of Weather Events on Public Health and Economics"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Synopsis
+In this report we aim to describe the effect of severe weather events on the public health and economic problems for communities and municipalities. Our overall hypothesis is that severe events can result in fatalities, injuries, and property damage. To investigate this hypothesis, we obtained the data from the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage. The events in the database start in the year 1950 and end in November 2011.
+
+## Data Processing
+```{r}
+df <- read.csv("StormData.csv")
+```
+```{r}
+dim(df)
+```
+
+The data has 902297 observations of 37 variables
+
+```{r}
+head(df[,1:13])
+```
+The property damage estimates exist in a column and the magnitude (thousands, millions, billions) in another. So we will create one column with the property damage estimates in USD.
+```{r warning=FALSE}
+df$PropertyDamage <- df$PROPDMG
+df$PropertyDamage[df$PROPDMGEXP =="K"] <- df$PROPDMG * 1000
+df$PropertyDamage[df$PROPDMGEXP =="M"] <- df$PROPDMG * 1000000
+df$PropertyDamage[df$PROPDMGEXP =="B"] <- df$PROPDMG * 1000000000
+
+summary(df$PropertyDamage)
+```
+
+## Results
+### The effect of weather events on the public population
+
+```{r}
+health <- aggregate(cbind(df$FATALITIES,df$INJURIES),
+                    by = list(df$EVTYPE),
+                    FUN="sum")
+
+names(health) <- c("Event", "Fatalities", "Injuries")
+```
+
+We will check the top 10 events that cause the biggest number of fatalities and injuries
+
+```{r}
+ordhealth <- health[order(health$Fatalities+health$Injuries, decreasing = TRUE),]
+ordhealth <- ordhealth[1:10,]
+```
+
+```{r}
+library(reshape2)
+ordhealth.long <- melt(ordhealth)
+library(ggplot2)
+ggplot(ordhealth.long,aes(Event,value,fill=variable))+
+       geom_bar(stat="identity",position="dodge")+
+       theme(axis.text.x = element_text(angle=90))
+```
+
+
+The most harmful event on the public health is obviously tornadoes. The figure shows that the "Tornado" event cause the biggest number of fatalities and injuries compared to other weather events.
+
+### The effect of weather events on the economy
+
+```{r}
+economy <- aggregate (df$PropertyDamage,
+                      by = list(df$EVTYPE),
+                      FUN = "sum")
+```
+We will check the top 10 events that cause the highest property damage estimates
+
+```{r}
+ordeconomy <- economy[order(economy$x, decreasing = TRUE),]
+ordeconomy <- ordeconomy[1:10,]
+```
+
+```{r}
+ggplot(ordeconomy,aes(Group.1,x))+
+       geom_bar(stat="identity")+
+       theme(axis.text.x = element_text(angle=90))+
+       xlab("Event Type")+
+       ylab("Property Damage $")
+       
+```
+
+The "Tornado" event also causes the biggest property damage estimates compared to other weather events.
+
