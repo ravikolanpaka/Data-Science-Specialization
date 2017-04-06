@@ -1,0 +1,80 @@
+---
+title: "Exponential Distribution in R"
+author: "Rehab Fathi"
+date: "April 6, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+## Overview
+In this project, I will investigate the exponential distribution in R and compare it with the Central Limit Theorem. I will investigate the distribution of averages of 40 exponentials with a thousand simulations.
+
+## Simulations
+```{r}
+par(mfrow=c(1,2))
+hist(rexp(40,0.2), main="Exponential Distribution", xlab="Exponentials")
+mns = NULL
+for (i in 1 : 1000) mns = c(mns, mean(rexp(40,0.2)))
+hist(mns, main = "Distribution of the Mean", xlab = "Mean of 40 Exponentials")
+```
+
+The figures show the exponential distribution compared to the means of 1000 simulations of 40 samples of the exponential distribution. The rate parameter is set to 0.2
+
+
+
+## Sample mean versus theoretical mean
+```{r}
+par(mfrow=c(1,2))
+hist(rexp(40,0.2), main="Exponential Distribution", xlab="Exponentials")
+abline(v=mean(rexp(40,0.2)), lty =1, lwd = 5)
+hist(mns, main = "Distribution of the Mean", xlab = "Mean of 40 Exponentials")
+abline(v=mean(mns), lty =1, lwd = 5)
+```
+
+The mean of the sample means is 5.41, slightly higher than the exponential mean which is 5.0
+
+
+
+## Sample variance versus theoretical variance
+```{r}
+par(mfrow=c(1,2))
+hist(rexp(40,0.2), 
+     main="Exponential Distribution", 
+     xlab="Exponentials", 
+     prob=TRUE)
+curve(dnorm(x, mean=mean(rexp(40,0.2)), sd=sqrt(var(rexp(40,0.2)))),
+          col="darkblue", lwd=2, add=TRUE, yaxt="n")
+abline(v=mean(rexp(40,0.2)) + sqrt(var(rexp(40,0.2))), lwd=2, col="red")
+abline(v=mean(rexp(40,0.2)) - sqrt(var(rexp(40,0.2))), lwd=2, col="red")
+hist(mns, 
+     main = "Distribution of the Mean", 
+     xlab = "Mean of 40 Exponentials", 
+     prob=TRUE)
+abline(v=mean(mns) + sqrt(var(mns)), lwd=2, col="red")
+abline(v=mean(mns) - sqrt(var(mns)), lwd=2, col="red")
+curve(dnorm(x, mean=mean(mns), sd=sqrt(var(mns))), 
+          col="darkblue", lwd=2, add=TRUE, yaxt="n")
+```
+
+The distribution of means has a lower variance.
+The variance of the sample of means is 0.67 while the theoretical variance of the exponential distribution is 2.23
+
+
+
+## Sample distribution
+```{r}
+hist(mns, 
+     main = "Distribution of the Mean", 
+     xlab = "Mean of 40 Exponentials", 
+     prob=TRUE)
+curve(dnorm(x, mean=mean(mns), sd=sqrt(var(mns))), 
+          col="darkblue", lwd=2, add=TRUE, yaxt="n")
+lines(density(mns), lwd=2, col="red")   
+```
+
+The red curve shows the distribution of the sample of means while the blue curve shows the normal distribution. The distribution of means is a little skewed but it is approximately a normal distribution.
+Another property of a normal distribution is that the mean is equal to the median, the mean of the distribution is 5 and the median is 4.93.

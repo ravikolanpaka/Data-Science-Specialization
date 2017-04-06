@@ -1,0 +1,42 @@
+---
+title: "ToothGrowth Data"
+author: "Rehab Fathi"
+date: "April 6, 2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## OVerview
+
+The dataset shows the length of odontoblasts (cells responsible for tooth growth) in 60 guinea pigs. Each animal received one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, (orange juice or ascorbic acid (a form of vitamin C and coded as VC).
+
+## Summary of the data
+```{r}
+df <- ToothGrowth
+summary(df)
+```
+
+## Data Analysis
+Let's explore the average length for each dose of vitamin C for the two sources
+```{r}
+summ <- aggregate(df$len,
+          by=list(df$supp, df$dose),
+          FUN="mean")
+names(summ) <- c("Source", "Dose", "Mean")
+summ
+```
+
+## Hypothesis
+My hypothesis is that the mean odontoblasts length with orange juice is equal to the mean length with ascorbic acid.
+
+```{r}
+t.test(summ[summ$Source=="OJ","Mean"]- summ[summ$Source=="VC","Mean"])
+```
+
+## Conclusion
+The null hypothesis is rejected by the t-test. The mean length associated with orange juice is not equal to the mean length associated with ascorbic acid.
