@@ -1,0 +1,83 @@
+---
+title: "Practical Machine Learning"
+author: "Rehab Fathi"
+date: "April 16, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. 
+
+## Data Preprocessing
+### Remove columns with missing values
+The data has 160 variables and it's hard to do any data exploration so I'll remove all columns with NAs
+
+```{r}
+train <- read.csv("pml-training.csv", na.strings = c("NA", ""))
+traincomplete <- train[,colSums(is.na(train)) == 0]
+dim(traincomplete)
+```
+
+The new dataset contains 19622 observations of 60 variables
+
+### Remove almost constant predictors 
+
+```{r}
+library(caret)
+library(lattice)
+library(ggplot2)
+nzv <- nearZeroVar(traincomplete)
+trainvar <- traincomplete[,-nzv]
+dim(trainvar)
+```
+
+
+Only one predictor has near zero variance and it is removed
+
+### Remove id variable
+
+```{r}
+trainvar <- trainvar[,-1]
+```
+
+
+## Constructing trees with caret package
+
+```{r}
+fitControl <- trainControl(method = "repeatedcv",
+                           number = 10,
+                           repeats = 10,
+                           classProbs = TRUE)
+model<-train(classe~.,
+             data=trainvar,
+             method="rpart",
+             tuneLength=20,
+             trControl = fitControl)
+model
+
+```
+```{r}
+rattle::fancyRpartPlot(model$finalModel)
+```
+
+## Preprocess testing set
+```{r}
+test <- read.csv("pml-testing.csv")
+test <- test[,colSums(is.na(train)) == 0]
+test <- test[,-nzv]
+```
+
+## Predict on test values
+
+```{r}
+pred <- predict( model, newdata = test)
+pred
+```
+
