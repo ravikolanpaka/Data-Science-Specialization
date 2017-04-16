@@ -50,6 +50,9 @@ trainvar <- trainvar[,-1]
 
 ## Constructing trees with caret package
 
+I will use the caret package to construct decision trees to predict the classe variable.
+The algorithm will use cross validation with 10 folds to minimize the out of sample error
+
 ```{r}
 fitControl <- trainControl(method = "repeatedcv",
                            number = 10,
